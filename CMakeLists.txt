@@ -50,6 +50,7 @@
 #
 # The following variables are available:
 #   HAVE_RAND_EGD: `RAND_egd` present in OpenSSL
+#   HAVE_AWSLC: OpenSSL is AWS-LC
 #   HAVE_BORINGSSL: OpenSSL is BoringSSL
 #   HAVE_PK11_CREATEMANAGEDGENERICOBJECTL: `PK11_CreateManagedGenericObject` present in NSS
 #   HAVE_SSL_CTX_SET_QUIC_METHOD: `SSL_CTX_set_quic_method` present in OpenSSL
@@ -459,13 +460,15 @@ if(CURL_USE_OPENSSL)
     list(APPEND CURL_LIBS ${OPENSSL_LIBRARIES})
     include_directories(${OPENSSL_INCLUDE_DIR})
   endif()
-
   set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_INCLUDE_DIR})
   if(NOT DEFINED HAVE_RAND_EGD)
     check_symbol_exists(RAND_egd "${CURL_INCLUDES}" HAVE_RAND_EGD)
   endif()
   if(NOT DEFINED HAVE_BORINGSSL)
     check_symbol_exists(OPENSSL_IS_BORINGSSL "openssl/base.h" HAVE_BORINGSSL)
+  endif()
+  if(NOT DEFINED HAVE_AWSLC)
+    check_symbol_exists(OPENSSL_IS_AWSLC "openssl/base.h" HAVE_AWSLC)
   endif()
 
   add_definitions(-DOPENSSL_SUPPRESS_DEPRECATED)

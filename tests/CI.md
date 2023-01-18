@@ -97,7 +97,7 @@ are run at [curl.zuul.vexxhost.dev](https://curl.zuul.vexxhost.dev/builds):
 
 - Source code is formatted according to expectations (`make checksrc`).
 - Curl compiled with a number of different TLS configurations (WolfSSL, rustls,
-BoringSSL, etc).
+BoringSSL, AWS-LC, etc).
 - Curl compiled with different C compilers.
 
 As of November 2021, the tests run (sometimes) but do not run consistently and

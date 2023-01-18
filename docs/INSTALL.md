@@ -135,7 +135,7 @@ These options are provided to select the TLS backend to use.
  - GnuTLS: `--with-gnutls`.
  - mbedTLS: `--with-mbedtls`
  - NSS: `--with-nss`
- - OpenSSL: `--with-openssl` (also for BoringSSL and libressl)
+ - OpenSSL: `--with-openssl` (also for BoringSSL, AWS-LC, and libressl)
  - rustls: `--with-rustls`
  - Schannel: `--with-schannel`
  - Secure Transport: `--with-secure-transport`

@@ -207,8 +207,10 @@
 #if ((OPENSSL_VERSION_NUMBER >= 0x10101000L) && \
      !defined(LIBRESSL_VERSION_NUMBER) &&       \
      !defined(OPENSSL_IS_BORINGSSL))
-#define HAVE_SSL_CTX_SET_CIPHERSUITES
-#define HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH
+  #define HAVE_SSL_CTX_SET_CIPHERSUITES
+  #if !defined(OPENSSL_IS_AWSLC)
+    #define HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH
+  #endif
 #endif
 
 /*
@@ -397,7 +399,11 @@ CURLcode Curl_ossl_certchain(struct Curl_easy *data, SSL *ssl)
   CURLcode result;
   STACK_OF(X509) *sk;
   int i;
+#if defined(OPENSSL_IS_AWSLC)
+  size_t numcerts;
+#else
   numcert_t numcerts;
+#endif
   BIO *mem;
 
   DEBUGASSERT(ssl);
@@ -907,7 +913,7 @@ static char *ossl_strerror(unsigned long error, char *buf, size_t size)
     *buf = '\0';
   }
 
-#ifdef OPENSSL_IS_BORINGSSL
+#if defined(OPENSSL_IS_BORINGSSL) || defined(OPENSSL_IS_AWSLC)
   ERR_error_string_n((uint32_t)error, buf, size);
 #else
   ERR_error_string_n(error, buf, size);
@@ -2198,7 +2204,7 @@ CURLcode Curl_ossl_verifyhost(struct Curl_easy *data, struct connectdata *conn,
   altnames = X509_get_ext_d2i(server_cert, NID_subject_alt_name, NULL, NULL);
 
   if(altnames) {
-#ifdef OPENSSL_IS_BORINGSSL
+#if defined(OPENSSL_IS_BORINGSSL) || defined(OPENSSL_IS_AWSLC)
     size_t numalts;
     size_t i;
 #else
@@ -2773,7 +2779,9 @@ set_ssl_version_min_max(struct Curl_cfilter *cf, SSL_CTX *ctx)
   long curl_ssl_version_max;
 
   /* convert curl min SSL version option to OpenSSL constant */
-#if defined(OPENSSL_IS_BORINGSSL) || defined(LIBRESSL_VERSION_NUMBER)
+#if (defined(OPENSSL_IS_BORINGSSL)  || \
+     defined(OPENSSL_IS_AWSLC)      || \
+     defined(LIBRESSL_VERSION_NUMBER))
   uint16_t ossl_ssl_version_min = 0;
   uint16_t ossl_ssl_version_max = 0;
 #else
@@ -2850,7 +2858,7 @@ set_ssl_version_min_max(struct Curl_cfilter *cf, SSL_CTX *ctx)
 }
 #endif
 
-#ifdef OPENSSL_IS_BORINGSSL
+#if defined(OPENSSL_IS_BORINGSSL) || defined(OPENSSL_IS_AWSLC)
 typedef uint32_t ctx_option_t;
 #elif OPENSSL_VERSION_NUMBER >= 0x30000000L
 typedef uint64_t ctx_option_t;
@@ -3980,9 +3988,10 @@ static CURLcode ossl_connect_step2(struct Curl_cfilter *cf,
       }
 #if (OPENSSL_VERSION_NUMBER >= 0x10101000L && \
     !defined(LIBRESSL_VERSION_NUMBER) && \
-    !defined(OPENSSL_IS_BORINGSSL))
+    !defined(OPENSSL_IS_BORINGSSL) && \
+    !defined(OPENSSL_IS_AWSLC))
       /* SSL_R_TLSV13_ALERT_CERTIFICATE_REQUIRED is only available on
-         OpenSSL version above v1.1.1, not LibreSSL nor BoringSSL */
+         OpenSSL version above v1.1.1, not LibreSSL, BoringSSL, or AWS-LC */
       else if((lib == ERR_LIB_SSL) &&
               (reason == SSL_R_TLSV13_ALERT_CERTIFICATE_REQUIRED)) {
           /* If client certificate is required, communicate the
