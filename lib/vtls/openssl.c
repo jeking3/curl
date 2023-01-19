@@ -388,7 +388,7 @@ static void X509V3_ext(struct Curl_easy *data,
   }
 }
 
-#ifdef OPENSSL_IS_BORINGSSL
+#if defined(OPENSSL_IS_BORINGSSL) || defined(OPENSSL_IS_AWSLC)
 typedef size_t numcert_t;
 #else
 typedef int numcert_t;
@@ -399,11 +399,7 @@ CURLcode Curl_ossl_certchain(struct Curl_easy *data, SSL *ssl)
   CURLcode result;
   STACK_OF(X509) *sk;
   int i;
-#if defined(OPENSSL_IS_AWSLC)
-  size_t numcerts;
-#else
   numcert_t numcerts;
-#endif
   BIO *mem;
 
   DEBUGASSERT(ssl);
