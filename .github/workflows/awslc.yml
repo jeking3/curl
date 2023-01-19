@@ -9,6 +9,7 @@ on:
     branches:
     - master
     - '*/ci'
+    - 'awslc-compat-test'
     paths-ignore:
     - '**/*.md'
   pull_request:

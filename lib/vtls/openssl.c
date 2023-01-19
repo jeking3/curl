@@ -229,6 +229,8 @@
 #define OSSL_PACKAGE "LibreSSL"
 #elif defined(OPENSSL_IS_BORINGSSL)
 #define OSSL_PACKAGE "BoringSSL"
+#elif defined(OPENSSL_IS_AWSLC)
+#define OSSL_PACKAGE "AWS-LC"
 #else
 #define OSSL_PACKAGE "OpenSSL"
 #endif
@@ -259,7 +261,8 @@
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && \
     !(defined(LIBRESSL_VERSION_NUMBER) && \
       LIBRESSL_VERSION_NUMBER < 0x2070100fL) && \
-    !defined(OPENSSL_IS_BORINGSSL)
+    !defined(OPENSSL_IS_BORINGSSL) && \
+    !defined(OPENSSL_IS_AWSLC)
 #define HAVE_OPENSSL_VERSION
 #endif
 
@@ -3827,7 +3830,7 @@ static CURLcode ossl_connect_step1(struct Curl_cfilter *cf,
     SSL_set_tlsext_status_type(backend->handle, TLSEXT_STATUSTYPE_ocsp);
 #endif
 
-#if defined(OPENSSL_IS_BORINGSSL) && defined(ALLOW_RENEG)
+#if (defined(OPENSSL_IS_BORINGSSL) || defined(OPENSSL_IS_AWSLC)) && defined(ALLOW_RENEG)
   SSL_set_renegotiate_mode(backend->handle, ssl_renegotiate_freely);
 #endif
 
@@ -4748,6 +4751,10 @@ static size_t ossl_version(char *buffer, size_t size)
 #else
   return msnprintf(buffer, size, OSSL_PACKAGE);
 #endif
+#elif defined(OPENSSL_IS_AWSLC)
+  return msnprintf(buffer, size, "%s/%s",
+                   OSSL_PACKAGE,
+                   AWSLC_VERSION_NUMBER_STRING);
 #elif defined(HAVE_OPENSSL_VERSION) && defined(OPENSSL_VERSION_STRING)
   return msnprintf(buffer, size, "%s/%s",
                    OSSL_PACKAGE, OpenSSL_version(OPENSSL_VERSION_STRING));
